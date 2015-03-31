@@ -8,13 +8,17 @@
 
 import Foundation
 
+// Radians Functions
+public func toRadians(x: Double) -> Double {
+    return (M_PI / 180) * x
+}
+
+public func toDegrees(x: Double) -> Double {
+    return (180 / M_PI) * x
+}
+
+
+
 // Clarke Transform
 // This transformation converts balanced three phase quantities into balanced two phase quadrature quantities
 
-struct clarke {
-    let As = 0.0
-    let Bs = 0.0
-    let Cs = 0.0
-    let alpha = 0.0
-    let beta = 0.0
-}

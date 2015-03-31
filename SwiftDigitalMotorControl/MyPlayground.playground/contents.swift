@@ -2,17 +2,29 @@
 
 import Cocoa
 
-struct clarke {
-    let As = 0.0
-    let Bs = 0.0
-    let Cs = 0.0
-    let alpha = 0.0
-    let beta = 0.0
+
+toRadians(180)
+toDegrees(M_PI)
+
+
+for t in 1...80 {
+    let u = Double(t * (640/80))
+    let phaseA = cos(toRadians(u))
+    let phaseB = cos(toRadians(u - 120))
+    let phaseC = cos(toRadians(u - 240))
+    let (alpha, beta) = clarke(phaseA, phaseB, phaseC)
+    alpha
+    beta
+    let (alpha2, beta2) = clarke(phaseA, phaseB)
+    alpha2
+    beta2
+    let (Ds, Qs) = park(alpha, beta, toRadians(u))
+    Ds
+    Qs
+    let (alpha3, beta3) = iPark(Ds, Qs, toRadians(u))
+    alpha3
+    beta3
 }
 
-for t in 1...200 {
-    let u = Double(t)
-    let x = 2 * M_PI * u * 0.01
-    let phaseA = sin(x)
-}
+
 
