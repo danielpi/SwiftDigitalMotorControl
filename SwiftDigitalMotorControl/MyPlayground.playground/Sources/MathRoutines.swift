@@ -55,3 +55,134 @@ public func iPark(Ds: Double, Qs: Double, angle: Double) -> (Double, Double) {
 }
 
 
+// PID 
+// This module implements a 32-bit digital PID controller with anti-windup correction.
+// 
+
+/*
+PID Terminals
+Ref     - Input: reference set-point
+Fbk     - Input: feedback
+Out     - Output: controller output
+c1      - Internal: derivative filter coefficient
+c2      - Internal: derivative filter coefficient
+Iae     - Output: performance index
+Err     - Internal: servo error
+
+PID Parameters
+Kr      - Parameter: reference set-point weighting
+Kp      - Parameter: proportional loop gain
+Ki      - Parameter: integral gain
+Kd      - Parameter: derivative gain
+Km      - Parameter: derivative weighting
+Umax    - Parameter: upper saturation limit
+Umin    - Parameter: lower saturation limit
+Kiae    - Parameter: IAE scaling
+
+PID Data
+up      - Data: proportional term
+ui      - Data: integral term
+ud      - Data: derivative term
+v1      - Data: pre-saturated controller output
+i1      - Data: integrator storage: ui(k-1)
+d1      - Data: differentiator storage: ud(k-1)
+d2      - Data: differentiator storage: d2(k-1)
+w1      - Data: saturation record: [u(k-1) - v(k-1)]
+
+*/
+
+// The user needs access to the parameters. This is what defines the particular PID loop. To execute an iteration of the PID loop you must provide the inputs and you expect to receive the outputs. The question is where to the mutating bits of data go?
+
+struct PIDParameters {
+    var Kr: Double = 1.0        // reference set-point weighting
+    var Kp: Double = 1.0        // proportional loop gain
+    var Ki: Double = 0.0        // integral gain
+    var Kd: Double = 0.0        // derivative gain
+    var Km: Double = 0.0        // derivitive weighting
+    
+    var Umax: Double = 100.0    // Upper saturation limit
+    var Umin: Double = -100.0   // Lower saturation limit
+    var Kiae: Double = 1.0      // IAE Scaling
+}
+
+struct PIDData {
+    var up: Double = 0.0        // proportional term
+    var ui: Double = 0.0        // integral term
+    var ud: Double = 0.0        // derivative term
+    var v1: Double = 0.0        // pre-saturated controller output
+    var i1: Double = 0.0        // integrator storage: ui(k-1)
+    var d1: Double = 0.0        // differentiator storage: ud(k-1)
+    var d2: Double = 0.0        // differentiator storage: d2(k-1)
+    var w1: Double = 0.0        // saturation record: [u(k-1) - v(k-1)]
+}
+
+class GrandoPID {
+    var currentParameters: PIDParameters
+    var currentData: PIDData
+    
+    init() {
+        currentParameters = PIDParameters()
+        currentData = PIDData()
+    }
+    
+    func handleInput(reference: Double, feedback: Double) -> Double {
+        
+    }
+}
+
+func pid(reference: Double, feedback: Double, inout state: PIDState) -> Double {
+    state.up = (state.Kr * reference) - feedback
+    
+    return state.up
+}
+
+
+/*
+/* proportional term */ 																		\
+v.data.up = _IQmpy(v.param.Kr, v.term.Ref) - v.term.Fbk;										\
+\
+/* integral term */ 																			\
+v.data.ui = _IQmpy(v.param.Ki, _IQmpy(v.data.w1, (v.term.Ref - v.term.Fbk))) + v.data.i1;		\
+v.data.i1 = v.data.ui;																			\
+\
+/* derivative term */ 																			\
+v.data.d2 = _IQmpy(v.param.Kd, _IQmpy(v.term.c1, (_IQmpy(v.term.Ref, v.param.Km) - v.term.Fbk))) - v.data.d2;	\
+v.data.ud = v.data.d2 + v.data.d1;																\
+v.data.d1 = _IQmpy(v.data.ud, v.term.c2);														\
+\
+/* control output */ 																			\
+v.data.v1 = _IQmpy(v.param.Kp, (v.data.up + v.data.ui + v.data.ud));							\
+v.term.Out= _IQsat(v.data.v1, v.param.Umax, v.param.Umin);										\
+v.data.w1 = (v.term.Out == v.data.v1) ? _IQ(1.0) : _IQ(0.0);
+*/
+
+
+/*
+
+let speedLoopController = PID(Kp: 0.2, Ki: 0.0005, Kd: 0.0)
+
+while(running) {
+    let output = speedLoopController.loop(ref: 0.1, feedback: 0.5)
+    
+    motors.speed = output
+}
+
+
+speedLoopController.Ki *= 2
+speedLoopController.reset()
+
+
+while(running) {
+let output = speedLoopController.loop(ref: 0.1, feedback: 0.5)
+
+motors.speed = output
+}
+
+
+*/
+
+
+
+
+
+
