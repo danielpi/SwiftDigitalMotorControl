@@ -117,24 +117,29 @@ struct PIDData {
 }
 
 class GrandoPID {
-    var currentParameters: PIDParameters
-    var currentData: PIDData
+    var parameters: PIDParameters
+    var data: PIDData
     
     init() {
-        currentParameters = PIDParameters()
-        currentData = PIDData()
+        parameters = PIDParameters()
+        data = PIDData()
     }
     
     func handleInput(reference: Double, feedback: Double) -> Double {
+        // Proportional term
+        data.up = (parameters.Kr * reference) - feedback
+        
+        // Intergral term
+        data.ui = ((reference * parameters.Km) - feedback)
+        
+        // Derivitive term
+        
+        
+        // Control Output
         
     }
 }
 
-func pid(reference: Double, feedback: Double, inout state: PIDState) -> Double {
-    state.up = (state.Kr * reference) - feedback
-    
-    return state.up
-}
 
 
 /*
