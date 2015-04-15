@@ -93,11 +93,11 @@ w1      - Data: saturation record: [u(k-1) - v(k-1)]
 
 // The user needs access to the parameters. This is what defines the particular PID loop. To execute an iteration of the PID loop you must provide the inputs and you expect to receive the outputs. The question is where to the mutating bits of data go?
 
-struct PIDParameters {
+public struct PIDParameters {
     var Kr: Double = 1.0        // reference set-point weighting
-    var Kp: Double = 1.0        // proportional loop gain
-    var Ki: Double = 0.0        // integral gain
-    var Kd: Double = 0.0        // derivative gain
+    public var Kp: Double = 1.0        // proportional loop gain
+    public var Ki: Double = 0.0        // integral gain
+    public var Kd: Double = 0.0        // derivative gain
     var Km: Double = 0.0        // derivitive weighting
     
     var Umax: Double = 100.0    // Upper saturation limit
@@ -105,7 +105,7 @@ struct PIDParameters {
     var Kiae: Double = 1.0      // IAE Scaling
 }
 
-struct PIDData {
+public struct PIDData {
     var up: Double = 0.0        // proportional term
     var ui: Double = 0.0        // integral term
     var ud: Double = 0.0        // derivative term
@@ -114,29 +114,38 @@ struct PIDData {
     var d1: Double = 0.0        // differentiator storage: ud(k-1)
     var d2: Double = 0.0        // differentiator storage: d2(k-1)
     var w1: Double = 0.0        // saturation record: [u(k-1) - v(k-1)]
+    var c1: Double = 0.0   		// derivative filter coefficient 1
+    var c2: Double = 0.0   		// derivative filter coefficient 2
 }
 
-class GrandoPID {
-    var parameters: PIDParameters
+public class GrandoPID {
+    public var parameters: PIDParameters
     var data: PIDData
     
-    init() {
+    public init() {
         parameters = PIDParameters()
         data = PIDData()
     }
     
-    func handleInput(reference: Double, feedback: Double) -> Double {
+    public func updateWithInput(reference: Double, feedback: Double) -> Double {
         // Proportional term
         data.up = (parameters.Kr * reference) - feedback
         
         // Intergral term
-        data.ui = ((reference * parameters.Km) - feedback)
+        data.ui = (parameters.Ki * (data.w1 * (reference - feedback))) + data.i1
+        data.i1 = data.ui
         
         // Derivitive term
-        
+        data.d2 = (parameters.Kd * (data.c1 * ((reference * parameters.Km) - feedback))) - data.d2
+        data.ud = data.d2 + data.d1
+        data.d1 = data.ud * data.c2
         
         // Control Output
+        data.v1 = (parameters.Kp * (data.up + data.ui + data.ud))
+        let output = max(min(data.v1, parameters.Umax), parameters.Umin)
+        data.w1 = (output == data.v1) ? 1.0 : 0.0
         
+        return output
     }
 }
 
